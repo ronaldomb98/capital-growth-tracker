@@ -2,20 +2,18 @@
 
 import { Box, Text } from '@godaddy/antares';
 import { useIntl } from 'react-intl';
-import { useLocaleContext } from '../app/providers';
-import type { ProjectionRow } from '../lib/calc';
-import { formatCurrency } from '../lib/format';
-import type { Frequency } from '../lib/types';
+import type { ProjectionSummaryRow } from '../lib/aggregate';
+import { formatCurrency, formatPercent } from '../lib/format';
+import type { Granularity } from '../lib/types';
 
 export function ProjectionTable({
   rows,
-  frequency
+  granularity
 }: {
-  rows: ProjectionRow[];
-  frequency: Frequency;
+  rows: ProjectionSummaryRow[];
+  granularity: Granularity;
 }) {
   const { formatMessage } = useIntl();
-  const { locale } = useLocaleContext();
 
   return (
     <Box elevation='card' padding='md' rounding='md'>
@@ -26,19 +24,21 @@ export function ProjectionTable({
         <table className='cgt-table'>
           <thead>
             <tr>
-              <th>{formatMessage({ id: `freq.${frequency}` })}</th>
-              <th>{formatMessage({ id: 'table.initial' })}</th>
-              <th>{formatMessage({ id: 'table.profit' })}</th>
-              <th>{formatMessage({ id: 'table.accumulated' })}</th>
+              <th>{formatMessage({ id: `freq.${granularity}` })}</th>
+              <th>{formatMessage({ id: 'table.initial' })} (USD)</th>
+              <th>{formatMessage({ id: 'table.profit' })} (USD)</th>
+              <th>{formatMessage({ id: 'table.accumulated' })} (USD)</th>
+              <th>{formatMessage({ id: 'table.profitPct' })}</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={row.period}>
-                <td>{row.period}</td>
-                <td className='num'>{formatCurrency(row.initialCapital, locale)}</td>
-                <td className='num'>{formatCurrency(row.periodProfit, locale)}</td>
-                <td className='num'>{formatCurrency(row.accumulatedCapital, locale)}</td>
+              <tr key={row.label}>
+                <td>{row.label}</td>
+                <td className='num'>{formatCurrency(row.initialCapital)}</td>
+                <td className='num'>{formatCurrency(row.periodProfit)}</td>
+                <td className='num'>{formatCurrency(row.accumulatedCapital)}</td>
+                <td className='num'>{formatPercent(row.cumulativeProfitPercent)}</td>
               </tr>
             ))}
           </tbody>

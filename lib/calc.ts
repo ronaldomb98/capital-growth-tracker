@@ -1,5 +1,8 @@
+import { enumerateTradingDays } from './tradingDays';
+
 export interface ProjectionRow {
   period: number;
+  date: string;
   initialCapital: number;
   periodProfit: number;
   accumulatedCapital: number;
@@ -7,35 +10,48 @@ export interface ProjectionRow {
 
 export interface ProjectionInput {
   principal: number;
-  ratePercent: number;
-  periods: number;
+  dailyRatePercent: number;
+  tradingDays: number;
+  startDate?: string;
 }
 
-const maximumPeriods = 1000;
+const maximumTradingDays = 4000;
+
+function todayAsDateString(): string {
+  const today = new Date();
+  const offset = today.getTimezoneOffset() * 60_000;
+
+  return new Date(today.getTime() - offset).toISOString().slice(0, 10);
+}
 
 /**
- * Calculates the compound growth for every requested period.
+ * Calculates daily compound growth over NYSE trading days.
  *
- * The period count is constrained to 1,000 so the detailed table remains
- * responsive while still supporting long-running projections.
+ * The trading-day count is constrained to 4,000 so the detailed table remains
+ * responsive while still supporting projections of roughly 15 years.
  */
 export function computeProjections({
   principal,
-  ratePercent,
-  periods
+  dailyRatePercent,
+  tradingDays,
+  startDate = todayAsDateString()
 }: ProjectionInput): ProjectionRow[] {
   const rows: ProjectionRow[] = [];
-  const periodCount = Math.max(0, Math.min(Math.floor(periods), maximumPeriods));
-  const rate = ratePercent / 100;
+  const tradingDayCount = Math.max(
+    0,
+    Math.min(Math.floor(tradingDays), maximumTradingDays)
+  );
+  const rate = dailyRatePercent / 100;
   let balance = principal;
 
-  for (let period = 1; period <= periodCount; period += 1) {
+  for (const [index, date] of enumerateTradingDays(startDate, tradingDayCount).entries()) {
     const initialCapital = balance;
     const periodProfit = initialCapital * rate;
     const accumulatedCapital = initialCapital + periodProfit;
 
     rows.push({
-      period,
+      period: index + 1,
+      date,
       initialCapital,
       periodProfit,
       accumulatedCapital

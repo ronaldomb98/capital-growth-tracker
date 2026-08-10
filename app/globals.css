@@ -103,21 +103,31 @@ body {
   width: 100%;
 }
 
+.cgt-granularity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .cgt-chart {
+  width: 100%;
   height: 380px;
   min-width: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-gutter: stable;
+  overflow: hidden;
 }
 
 .cgt-chart > div {
-  min-width: 560px;
+  width: 100%;
+  min-width: 0;
   min-height: 380px;
 }
 
 .cgt-chart-grid {
   width: 100%;
+}
+
+.cgt-chart-grid > * {
+  min-width: 0;
 }
 
 .table-scroll {

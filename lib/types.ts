@@ -1,1 +1,1 @@
-export type Frequency = 'days' | 'weeks' | 'months' | 'years';
+export type Granularity = 'days' | 'weeks' | 'months' | 'years';

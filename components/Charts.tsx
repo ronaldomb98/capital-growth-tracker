@@ -2,11 +2,9 @@
 
 import { BarChart, Box, Grid, LineChart, Text } from '@godaddy/antares';
 import { useIntl } from 'react-intl';
-import { useLocaleContext } from '../app/providers';
 import { sampleForChart } from '../lib/chart';
 import type { ProjectionRow } from '../lib/calc';
 import { formatCurrency } from '../lib/format';
-import type { Frequency } from '../lib/types';
 
 function getPositiveDomain(values: number[]): [number, number] {
   const positiveValues = values.filter((value) => value > 0);
@@ -39,17 +37,15 @@ class CurrencyChartValue extends Number {
 }
 
 export function Charts({
-  rows,
-  frequency
+  rows
 }: {
   rows: ProjectionRow[];
-  frequency: Frequency;
 }) {
   const { formatMessage } = useIntl();
-  const { locale } = useLocaleContext();
   const sampledRows = sampleForChart(rows);
-  const periodAxis = formatMessage({ id: `freq.${frequency}` });
+  const dateAxis = formatMessage({ id: 'charts.dateAxis' });
   const amountAxis = formatMessage({ id: 'charts.amountAxis' });
+  const amountAxisWithCurrency = `${amountAxis} (USD)`;
   const accumulatedLabel = formatMessage({ id: 'charts.accumulated' });
   const summaryLabel = formatMessage({ id: 'charts.summary' });
   const initialCapital = rows[0]?.initialCapital ?? 0;
@@ -73,7 +69,12 @@ export function Charts({
   );
   const formatAmount = (value: number | string | Date) => (
     typeof value === 'number' && value !== 0
-      ? formatCurrency(value, locale)
+      ? formatCurrency(value)
+      : ''
+  );
+  const formatNumber = (value: number | string | Date) => (
+    typeof value === 'number' && value !== 0
+      ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value)
       : ''
   );
 
@@ -91,18 +92,18 @@ export function Charts({
               id: 'accumulated',
               name: accumulatedLabel,
               data: sampledRows.map((row) => ({
-                x: row.period,
+                x: new Date(`${row.date}T00:00:00Z`),
                 y: row.accumulatedCapital
               }))
             }]}
-            xType='linear'
-            xTitle={periodAxis}
+            xType='time'
+            xTitle={dateAxis}
             yTitle={amountAxis}
             yDomain={accumulatedDomain}
             yZero={false}
             yNumTicks={5}
-            yTickFormat={formatAmount}
-            tooltipValueFormatter={(datum) => formatCurrency(datum.y as number, locale)}
+            yTickFormat={formatNumber}
+            tooltipValueFormatter={(datum) => formatCurrency(datum.y as number)}
             height={380}
             aria-label={accumulatedLabel}
           />
@@ -126,11 +127,11 @@ export function Charts({
             xAccessor={(datum) => (
               new CurrencyChartValue(
                 datum.amount,
-                formatCurrency(datum.amount, locale)
+                formatCurrency(datum.amount)
               ) as unknown as number
             )}
             yAccessor={(datum) => datum.category}
-            xAxisTitle={amountAxis}
+            xAxisTitle={amountAxisWithCurrency}
             xDomain={summaryDomain}
             xNumTicks={5}
             xTickFormat={formatAmount}
