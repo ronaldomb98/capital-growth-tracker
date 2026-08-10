@@ -1,28 +1,5 @@
-import React, { CSSProperties } from 'react';
-import GasketEmblem from '@gasket/assets/react/gasket-emblem.js';
-import type { Metadata } from 'next';
+import CapitalGrowthTracker from '../components/CapitalGrowthTracker';
 
-export const metadata: Metadata = {
-  title: '.',
-  description: 'Gasket App'
-};
-
-const pageStyle: CSSProperties = { textAlign: 'center' };
-const logoStyle: CSSProperties = { width: '250px', height: '250px' };
-
-/**
- * Index page component
- * @returns {React.ReactElement} Index page
- */
-function IndexPage() {
-  return (
-    <div style={ pageStyle }>
-      <GasketEmblem style={ logoStyle } />
-      <h1>Welcome to Gasket!</h1>
-      <p>To get started, edit <code>app/page.tsx</code> and save to reload.</p>
-      <p><a href='https://gasket.dev'>Learn Gasket</a></p>
-    </div>
-  );
+export default function HomePage() {
+  return <CapitalGrowthTracker />;
 }
-
-export default IndexPage;
