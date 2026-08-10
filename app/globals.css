@@ -1,0 +1,196 @@
+:root {
+  /*
+   * Antares tokens used by the components rendered in this application.
+   * Values are copied from Antares' legacy theme token source, not invented
+   * locally, so charts, fields, cards, and the segmented controller share
+   * the same visual language.
+   */
+  --ux-1sbfig8: 0.25rem;
+  --ux-1s0t9v0: 0.875rem;
+  --ux-vvspv2: 1rem;
+  --ux-1w31hux: 1.5;
+  --ux-1nr6ynb: 700;
+  --ux-1pw8hzd: 1.25;
+  --ux-a2dzk8: 16px;
+  --ux-2lqd62: 0.75rem;
+  --ux-hm1ty7: 1.375;
+  --ux-g9ierp: 400;
+  --ux-aarlu5: 500;
+  --ux-oc0naw: 1rem;
+  --ux-16aixzc: 0.875rem;
+  --ux-1s5tndb: 6px;
+  --ux-1oqjeuu: 6px;
+
+  --ux-cao06b: #fff;
+  --ux-1leynsm: #111;
+  --ux-145pjib: #000;
+  --ux-97h3vl: #d4dbe0;
+  --ux-by6mab: #767676;
+  --ux-1glcx6s: #2b2b2b;
+  --ux-1m9ys0v: #767676;
+  --ux-1mh0ktr: #f5f5f5;
+  --ux-1qbn65p: #f5f5f5;
+  --ux-1utwv7e: #111;
+  --ux-11rtwg8: #f5f5f5;
+  --ux-bg7olm: #d6d6d6;
+  --ux-1e4ese5: #111;
+  --ux-gdy377: #fff;
+  --ux-187j9dd: #00a4a6;
+  --ux-k4fkva: #111;
+  --ux-l7zq7p: #f5f7f8;
+  --ux-1owc8nc: transparent;
+  --ux-ut3xrx: #111;
+  --ux-9qpf6c: #00a4a6;
+  --ux-h6e7c1: #fff;
+  --ux-1m7qrkf: rgba(17, 17, 17, 0.1);
+  --ux-unx9i2: #111;
+
+  --ux-k4t5bc: #15a4ab;
+  --ux-yscvvt: #145fa9;
+  --ux-3seoiy: #ef6c0f;
+  --ux-ifyf3f: #e20087;
+  --ux-1c4rju4: #744bc4;
+  --ux-1qsbael: #104a85;
+  --ux-vsd31q: #9d470a;
+  --ux-1afwtm7: #8b0053;
+  --ux-3uv4tc: #462a72;
+
+  color: var(--ux-1leynsm);
+  background: #f7f8f9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background:
+    radial-gradient(circle at 100% 0, rgb(21 164 171 / 16%), transparent 40rem),
+    #f7f8f9;
+}
+
+.cgt-page {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.cgt-page h1,
+.cgt-page h2,
+.cgt-page p {
+  margin: 0;
+}
+
+.cgt-page h1 {
+  color: #111820;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  line-height: 1.15;
+}
+
+.cgt-page h2 {
+  font-size: 1.125rem;
+  line-height: 1.35;
+  margin-bottom: 1rem;
+}
+
+.cgt-panel {
+  width: 100%;
+}
+
+.cgt-chart {
+  height: 380px;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
+}
+
+.cgt-chart > div {
+  min-width: 560px;
+  min-height: 380px;
+}
+
+.cgt-chart-grid {
+  width: 100%;
+}
+
+.table-scroll {
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid #d4dbe0;
+  border-radius: 0.5rem;
+}
+
+.cgt-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.cgt-table th,
+.cgt-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e9edf0;
+  text-align: left;
+}
+
+.cgt-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #eef1f3;
+  color: #111820;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cgt-table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+
+.cgt-table tbody tr:hover {
+  background: #edf9f7;
+}
+
+.cgt-table .num,
+.cgt-table th:not(:first-child) {
+  text-align: right;
+}
+
+.cgt-table-count {
+  display: block;
+  margin-bottom: 0.75rem !important;
+  color: #5a6872;
+}
+
+@media (max-width: 760px) {
+  .cgt-page {
+    padding: 1rem !important;
+  }
+
+  .cgt-header {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  .cgt-chart-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cgt-chart {
+    height: 360px;
+  }
+
+  .cgt-chart > div {
+    min-height: 360px;
+  }
+}

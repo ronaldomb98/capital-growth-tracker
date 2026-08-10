@@ -7,7 +7,12 @@ export default defineConfig({
   ],
   test: {
     environment: 'jsdom',
-    globals: true
+    globals: true,
+    server: {
+      deps: {
+        inline: ['@godaddy/antares']
+      }
+    }
   }
 });
 

@@ -1,19 +1,19 @@
-import React from 'react';
-import gasket from '@/gasket';
-import { withGasketData } from '@gasket/nextjs/layout';
+import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
+import './globals.css';
+import { Providers } from './providers';
 
-/**
- * Root layout component
- * @param {object} props - Component props
- * @param {React.ReactNode} props.children - Child components
- * @returns {React.ReactElement} Root layout
- */
-function RootLayout({ children }: { children: React.ReactNode; }): React.ReactElement {
+export const metadata: Metadata = {
+  title: 'Capital Growth Tracker',
+  description: 'Project exponential capital growth over time'
+};
+
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang='en'>
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
-
-export default withGasketData(gasket)(RootLayout);
