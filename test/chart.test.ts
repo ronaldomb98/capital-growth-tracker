@@ -5,6 +5,7 @@ import type { ProjectionRow } from '../lib/calc';
 function makeRows(length: number): ProjectionRow[] {
   return Array.from({ length }, (_, index) => ({
     period: index + 1,
+    date: `2026-01-${String(index + 1).padStart(2, '0')}`,
     initialCapital: index,
     periodProfit: 1,
     accumulatedCapital: index + 1

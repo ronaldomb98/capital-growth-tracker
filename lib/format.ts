@@ -1,13 +1,13 @@
-import type { Locale } from '../app/providers';
+export function formatCurrency(value: number): string {
+  return `${new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value)} USD`;
+}
 
-const locales = {
-  en: 'en-US',
-  es: 'es-ES'
-} as const;
-
-export function formatCurrency(value: number, locale: Locale): string {
-  return new Intl.NumberFormat(locales[locale], {
-    style: 'currency',
-    currency: 'USD'
-  }).format(value);
+export function formatPercent(value: number): string {
+  return `${new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value)}%`;
 }

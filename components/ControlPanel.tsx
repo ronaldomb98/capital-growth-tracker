@@ -1,18 +1,25 @@
 'use client';
 
-import { Box, Grid, NumberField, Select, SelectItem } from '@godaddy/antares';
+import {
+  Box,
+  Grid,
+  NumberField,
+  SegmentedController,
+  SegmentedControllerItem,
+  Text
+} from '@godaddy/antares';
 import { useIntl } from 'react-intl';
-import type { Frequency } from '../lib/types';
+import type { Granularity } from '../lib/types';
 
 export interface ControlPanelProps {
   principal: number;
-  ratePercent: number;
-  periods: number;
-  frequency: Frequency;
+  dailyRatePercent: number;
+  tradingDays: number;
+  granularity: Granularity;
   onPrincipalChange: (value: number) => void;
-  onRateChange: (value: number) => void;
-  onPeriodsChange: (value: number) => void;
-  onFrequencyChange: (value: Frequency) => void;
+  onDailyRateChange: (value: number) => void;
+  onTradingDaysChange: (value: number) => void;
+  onGranularityChange: (value: Granularity) => void;
 }
 
 function safeNumber(value: number): number {
@@ -21,13 +28,13 @@ function safeNumber(value: number): number {
 
 export function ControlPanel({
   principal,
-  ratePercent,
-  periods,
-  frequency,
+  dailyRatePercent,
+  tradingDays,
+  granularity,
   onPrincipalChange,
-  onRateChange,
-  onPeriodsChange,
-  onFrequencyChange
+  onDailyRateChange,
+  onTradingDaysChange,
+  onGranularityChange
 }: ControlPanelProps) {
   const { formatMessage } = useIntl();
 
@@ -35,39 +42,52 @@ export function ControlPanel({
     <Box elevation='card' padding='md' rounding='md' className='cgt-panel'>
       <Grid columns='repeat(auto-fit, minmax(190px, 1fr))' gap='md'>
         <NumberField
-          label={formatMessage({ id: 'controls.principal' })}
+          label={`${formatMessage({ id: 'controls.principal' })} (USD)`}
           value={principal}
           onChange={(value) => onPrincipalChange(safeNumber(value))}
-          minValue={0}
-          formatOptions={{ style: 'currency', currency: 'USD' }}
-        />
-        <NumberField
-          label={formatMessage({ id: 'controls.rate' })}
-          value={ratePercent}
-          onChange={(value) => onRateChange(safeNumber(value))}
-          minValue={0}
-          step={0.1}
-          formatOptions={{ style: 'decimal', maximumFractionDigits: 2 }}
-        />
-        <NumberField
-          label={formatMessage({ id: 'controls.duration' })}
-          value={periods}
-          onChange={(value) => onPeriodsChange(safeNumber(value))}
           minValue={1}
-          maxValue={1000}
           step={1}
           formatOptions={{ maximumFractionDigits: 0 }}
         />
-        <Select
-          label={formatMessage({ id: 'controls.frequency' })}
-          selectedKey={frequency}
-          onSelectionChange={(key) => onFrequencyChange(key as Frequency)}
-        >
-          <SelectItem id='days'>{formatMessage({ id: 'freq.days' })}</SelectItem>
-          <SelectItem id='weeks'>{formatMessage({ id: 'freq.weeks' })}</SelectItem>
-          <SelectItem id='months'>{formatMessage({ id: 'freq.months' })}</SelectItem>
-          <SelectItem id='years'>{formatMessage({ id: 'freq.years' })}</SelectItem>
-        </Select>
+        <NumberField
+          label={formatMessage({ id: 'controls.rate' })}
+          value={dailyRatePercent}
+          onChange={(value) => onDailyRateChange(safeNumber(value))}
+          minValue={0}
+          maxValue={99}
+          step={0.01}
+          formatOptions={{ style: 'decimal', maximumFractionDigits: 2 }}
+        />
+        <NumberField
+          label={formatMessage({ id: 'controls.tradingDays' })}
+          value={tradingDays}
+          onChange={(value) => onTradingDaysChange(safeNumber(value))}
+          minValue={1}
+          maxValue={4000}
+          step={1}
+          formatOptions={{ maximumFractionDigits: 0 }}
+        />
+        <div className='cgt-granularity'>
+          <Text as='p'>{formatMessage({ id: 'controls.granularity' })}</Text>
+          <SegmentedController
+            value={granularity}
+            onSelectionChange={(value) => onGranularityChange(value as Granularity)}
+            aria-label={formatMessage({ id: 'controls.granularity' })}
+          >
+            <SegmentedControllerItem value='years'>
+              {formatMessage({ id: 'freq.years' })}
+            </SegmentedControllerItem>
+            <SegmentedControllerItem value='months'>
+              {formatMessage({ id: 'freq.months' })}
+            </SegmentedControllerItem>
+            <SegmentedControllerItem value='weeks'>
+              {formatMessage({ id: 'freq.weeks' })}
+            </SegmentedControllerItem>
+            <SegmentedControllerItem value='days'>
+              {formatMessage({ id: 'freq.days' })}
+            </SegmentedControllerItem>
+          </SegmentedController>
+        </div>
       </Grid>
     </Box>
   );
