@@ -45,8 +45,6 @@
   "validation.horizon": "La programación supera el año 2100. Adelanta el inicio, reduce los trades o aumenta los trades por semana.",
   "validation.capital": "Introduce una inversión inicial y una ganancia por trade válidas.",
   "validation.overflow": "Esta proyección es demasiado grande. Reduce la ganancia por trade o la cantidad de trades.",
-  "controls.decrease": "Reducir",
-  "controls.increase": "Aumentar",
   "table.label": "Proyección de capital",
   "table.scrollHint": "Desliza la tabla horizontalmente para ver todas las columnas."
 }

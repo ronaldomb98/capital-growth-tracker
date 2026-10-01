@@ -45,8 +45,6 @@
   "validation.horizon": "The schedule extends beyond 2100. Choose an earlier start, fewer trades or more trades per week.",
   "validation.capital": "Enter a valid initial investment and profit per trade.",
   "validation.overflow": "This projection is too large to calculate. Reduce the profit per trade or the number of trades.",
-  "controls.decrease": "Decrease",
-  "controls.increase": "Increase",
   "table.label": "Capital projection",
   "table.scrollHint": "Scroll the table horizontally to see all columns."
 }

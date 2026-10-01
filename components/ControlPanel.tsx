@@ -6,9 +6,9 @@ import {
   NumberField, Radio, RadioGroup, Text,
   type NumberFieldProps
 } from '@godaddy/antares';
-import { NumberParser } from '@internationalized/number';
 import { parseDate } from '@internationalized/date';
 import { useIntl } from 'react-intl';
+import { I18nProvider } from 'react-aria-components';
 import { maximumDate, maximumTrades, maximumTradesPerWeek, minimumDate, type ScheduleInput } from '../lib/schedule';
 
 export interface ControlPanelProps {
@@ -20,47 +20,24 @@ export interface ControlPanelProps {
   onScheduleChange: (value: ScheduleInput) => void;
 }
 
-function NumericField({ label, exactStep = false, ...props }: Omit<NumberFieldProps, 'children'> & { label: string; exactStep?: boolean }) {
-  const { formatMessage, locale } = useIntl();
+function NumericField({ label, ...props }: Omit<NumberFieldProps, 'children'> & { label: string }) {
+  const { formatMessage } = useIntl();
   const invalid = !Number.isFinite(props.value) || props.value < props.minValue || props.value > props.maxValue;
   return (
-    <NumberField {...props} className='cgt-number-field' commitBehavior={exactStep ? 'validate' : 'snap'}
-      isRequired isInvalid={invalid} validationBehavior='aria'>
-      {({ state }) => {
-        // Antares snaps regular steppers to multiples of step. Preserve entered
-        // hundredths for capital and rate instead of rounding away decimals.
-        const parsed = new NumberParser(locale, props.formatOptions).parse(state.inputValue);
-        const stepBy = (direction: number) => {
-          const value = Number.isFinite(parsed) ? parsed : props.minValue;
-          state.setNumberValue(Math.min(props.maxValue, Math.max(props.minValue,
-            Math.round((value + direction * props.step) * 100) / 100)));
-        };
-        return (
-          <>
-            <Label>{label}</Label>
-            <Group>
-              {exactStep ? (
-                <Button slot='control' onPress={() => stepBy(-1)} isDisabled={parsed <= props.minValue}
-                  aria-label={`${formatMessage({ id: 'controls.decrease' })} ${label}`}>−</Button>
-              ) : <Button slot='decrement' />}
-              <Input inputMode={props.formatOptions?.maximumFractionDigits === 0 ? 'numeric' : 'decimal'}
-                autoComplete='off' spellCheck={false} onKeyDownCapture={exactStep ? (event) => {
-                if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  stepBy(event.key === 'ArrowUp' ? 1 : -1);
-                }
-              } : undefined} />
-              {exactStep ? (
-                <Button slot='control' onPress={() => stepBy(1)} isDisabled={parsed >= props.maxValue}
-                  aria-label={`${formatMessage({ id: 'controls.increase' })} ${label}`}>+</Button>
-              ) : <Button slot='increment' />}
-            </Group>
-            <FieldError>{formatMessage({ id: 'validation.number' }, { min: props.minValue, max: props.maxValue })}</FieldError>
-          </>
-        );
-      }}
-    </NumberField>
+    // Omitting locale lets React Aria use the browser locale, independently of UI language.
+    <I18nProvider>
+      <NumberField {...props} className='cgt-number-field'
+        isRequired isInvalid={invalid} validationBehavior='aria'>
+        <Label>{label}</Label>
+        <Group>
+          <Button slot='decrement' />
+          <Input inputMode={props.formatOptions?.maximumFractionDigits === 0 ? 'numeric' : 'decimal'}
+            autoComplete='off' spellCheck={false} />
+          <Button slot='increment' />
+        </Group>
+        <FieldError>{formatMessage({ id: 'validation.number' }, { min: props.minValue, max: props.maxValue })}</FieldError>
+      </NumberField>
+    </I18nProvider>
   );
 }
 
@@ -78,11 +55,11 @@ export function ControlPanel({
       <Flex direction='column' gap='lg'>
         <Grid columns='repeat(auto-fit, minmax(min(100%, 230px), 1fr))' gap='md'>
           <NumericField label={`${msg('controls.principal')} (USD)`}
-            value={principal} onChange={onPrincipalChange} minValue={1} maxValue={1_000_000_000}
-            exactStep step={1} formatOptions={{ maximumFractionDigits: 2 }} />
+            value={principal} onChange={onPrincipalChange} minValue={0} maxValue={1_000_000_000}
+            commitBehavior='validate' step={100} formatOptions={{ maximumFractionDigits: 2 }} />
           <NumericField label={msg('controls.rate')}
             value={ratePercent} onChange={onRateChange} minValue={0} maxValue={99}
-            exactStep step={0.1} formatOptions={{ maximumFractionDigits: 2 }} />
+            commitBehavior='validate' step={0.05} formatOptions={{ maximumFractionDigits: 2 }} />
           <NumericField label={msg('controls.tradesPerWeek')}
             value={schedule.tradesPerWeek} onChange={(tradesPerWeek) => updateSchedule({ tradesPerWeek })}
             minValue={1} maxValue={maximumTradesPerWeek} step={1} formatOptions={{ maximumFractionDigits: 0 }} />

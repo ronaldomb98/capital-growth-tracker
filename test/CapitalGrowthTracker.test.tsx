@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, screen, within } from '@testing-library/react';
+import { act, cleanup, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import CapitalGrowthTracker from '../components/CapitalGrowthTracker';
 import { renderWithIntl } from './testUtils';
@@ -11,7 +11,12 @@ HTMLElement.prototype.scrollIntoView = vi.fn();
 Element.prototype.getAnimations = () => [];
 vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
 
-afterEach(() => { cleanup(); window.localStorage.clear(); });
+afterEach(() => {
+  vi.restoreAllMocks();
+  act(() => { window.dispatchEvent(new Event('languagechange')); });
+  cleanup();
+  window.localStorage.clear();
+});
 
 describe('trade planner form', () => {
   it('renders labelled Antares fields and updates the calculated end date', async () => {
@@ -54,30 +59,47 @@ describe('trade planner form', () => {
     expect(screen.getByRole('textbox', { name: 'Trades per week' }).getAttribute('value')).toBe('3');
   });
 
-  it('steps the rate by exactly 0.1 without rounding away its hundredths', async () => {
+  it('preserves entered decimals and uses the native step grid for buttons and arrow keys', async () => {
     const user = userEvent.setup();
     renderWithIntl(<CapitalGrowthTracker />);
     const rate = await screen.findByRole('textbox', { name: /Profit per trade/ });
     expect(rate.getAttribute('value')).toBe('1.25');
-    await user.click(screen.getByRole('button', { name: 'Increase Profit per trade (%)' }));
-    expect(rate.getAttribute('value')).toBe('1.35');
-    await user.click(screen.getByRole('button', { name: 'Decrease Profit per trade (%)' }));
-    await user.click(screen.getByRole('button', { name: 'Decrease Profit per trade (%)' }));
-    expect(rate.getAttribute('value')).toBe('1.15');
+    await user.click(screen.getByRole('button', { name: /(?:Increase|Aumentar) Profit per trade/ }));
+    expect(rate.getAttribute('value')).toBe('1.3');
+    await user.click(screen.getByRole('button', { name: /Decrease Profit per trade/ }));
+    await user.click(screen.getByRole('button', { name: /Decrease Profit per trade/ }));
+    expect(rate.getAttribute('value')).toBe('1.2');
     await user.clear(rate);
     await user.type(rate, '2.27');
     await user.keyboard('{ArrowUp}');
-    expect(rate.getAttribute('value')).toBe('2.37');
+    expect(rate.getAttribute('value')).toBe('2.3');
     await user.keyboard('{ArrowDown}');
-    expect(rate.getAttribute('value')).toBe('2.27');
+    expect(rate.getAttribute('value')).toBe('2.25');
+  });
+
+  it('uses native 100 USD and one-trade steps in both directions', async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<CapitalGrowthTracker />);
+    const principal = await screen.findByRole('textbox', { name: /Initial investment/ });
+    const weekly = screen.getByRole('textbox', { name: 'Trades per week' });
+    await user.click(screen.getByRole('button', { name: /Increase Initial investment/ }));
+    expect(principal.getAttribute('value')).toBe('10,100');
+    await user.click(screen.getByRole('button', { name: /Decrease Initial investment/ }));
+    expect(principal.getAttribute('value')).toBe('10,000');
+    await user.click(screen.getByRole('button', { name: /Increase Trades per week/ }));
+    expect(weekly.getAttribute('value')).toBe('4');
+    await user.click(screen.getByRole('button', { name: /Decrease Trades per week/ }));
+    expect(weekly.getAttribute('value')).toBe('3');
   });
 
   it.each([
-    { locale: 'en' as const, principalLabel: /Initial investment/, rateLabel: /Profit per trade/, weeklyLabel: 'Trades per week', countLabel: 'Number of trades', increase: 'Increase', principalInput: '1234.56', principalOutput: '1,234.56', incremented: '1,235.56', rateInput: '2.37' },
-    { locale: 'es' as const, principalLabel: /Inversión inicial/, rateLabel: /Ganancia por trade/, weeklyLabel: 'Trades por semana', countLabel: 'Cantidad de trades', increase: 'Aumentar', principalInput: '1234,56', principalOutput: '1234,56', incremented: '1235,56', rateInput: '2,37' }
+    { locale: 'en' as const, principalLabel: /Initial investment/, rateLabel: /Profit per trade/, weeklyLabel: 'Trades per week', countLabel: 'Number of trades', increase: 'Increase', principalInput: '1234.56', principalOutput: '1,234.56', incremented: '1,300', rateInput: '2.37' },
+    { locale: 'es' as const, principalLabel: /Inversión inicial/, rateLabel: /Ganancia por trade/, weeklyLabel: 'Trades por semana', countLabel: 'Cantidad de trades', increase: 'Aumentar', principalInput: '1234,56', principalOutput: '1234,56', incremented: '1300', rateInput: '2,37' }
   ])('preserves typed/pasted decimals and configures mobile keyboards in $locale', async (settings) => {
     const user = userEvent.setup();
+    vi.spyOn(window.navigator, 'language', 'get').mockReturnValue(settings.locale === 'es' ? 'es-ES' : 'en-US');
     renderWithIntl(<CapitalGrowthTracker />, settings.locale);
+    act(() => { window.dispatchEvent(new Event('languagechange')); });
     const principal = await screen.findByRole('textbox', { name: settings.principalLabel });
     const rate = screen.getByRole('textbox', { name: settings.rateLabel });
     expect(principal.getAttribute('inputmode')).toBe('decimal');
@@ -98,6 +120,26 @@ describe('trade planner form', () => {
     expect(rate.getAttribute('aria-invalid')).not.toBe('true');
     await user.click(screen.getByRole('radio', { name: settings.countLabel }));
     expect(screen.getByRole('textbox', { name: settings.countLabel }).getAttribute('inputmode')).toBe('numeric');
+  });
+
+  it.each([
+    { browserLocale: 'es-CO', input: '1,5', initial: '1,25', incremented: '1,55' },
+    { browserLocale: 'en-US', input: '1.5', initial: '1.25', incremented: '1.55' }
+  ])('uses native browser number formatting ($browserLocale) independently of English labels', async (settings) => {
+    const user = userEvent.setup();
+    vi.spyOn(window.navigator, 'language', 'get').mockReturnValue(settings.browserLocale);
+    renderWithIntl(<CapitalGrowthTracker />);
+    act(() => { window.dispatchEvent(new Event('languagechange')); });
+    const rate = await screen.findByRole('textbox', { name: /Profit per trade/ });
+    expect(rate.getAttribute('value')).toBe(settings.initial);
+    await user.clear(rate);
+    await user.type(rate, settings.input);
+    await user.tab();
+    expect(rate.getAttribute('value')).toBe(settings.input);
+    await user.click(screen.getByRole('button', { name: /(?:Increase|Aumentar) Profit per trade/ }));
+    expect(rate.getAttribute('value')).toBe(settings.incremented);
+    await user.click(screen.getByRole('radio', { name: 'ES' }));
+    expect(screen.getByRole('textbox', { name: /Ganancia por trade/ }).getAttribute('value')).toBe(settings.incremented);
   });
 
   it('shows validation instead of a misleading result when a required number is cleared', async () => {
