@@ -31,7 +31,9 @@ function NumericField({ label, ...props }: Omit<NumberFieldProps, 'children'> & 
         <Label>{label}</Label>
         <Group>
           <Button slot='decrement' />
-          <Input inputMode={props.formatOptions?.maximumFractionDigits === 0 ? 'numeric' : 'decimal'}
+          {/* React Aria defaults to a decimal keypad on iOS; explicitly request
+              the full keyboard so its regional decimal key does not limit input. */}
+          <Input inputMode={props.formatOptions?.maximumFractionDigits === 0 ? 'numeric' : 'text'}
             autoComplete='off' spellCheck={false} />
           <Button slot='increment' />
         </Group>

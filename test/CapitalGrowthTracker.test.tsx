@@ -95,15 +95,16 @@ describe('trade planner form', () => {
   it.each([
     { locale: 'en' as const, principalLabel: /Initial investment/, rateLabel: /Profit per trade/, weeklyLabel: 'Trades per week', countLabel: 'Number of trades', increase: 'Increase', principalInput: '1234.56', principalOutput: '1,234.56', incremented: '1,300', rateInput: '2.37' },
     { locale: 'es' as const, principalLabel: /Inversión inicial/, rateLabel: /Ganancia por trade/, weeklyLabel: 'Trades por semana', countLabel: 'Cantidad de trades', increase: 'Aumentar', principalInput: '1234,56', principalOutput: '1234,56', incremented: '1300', rateInput: '2,37' }
-  ])('preserves typed/pasted decimals and configures mobile keyboards in $locale', async (settings) => {
+  ])('preserves decimals and requests the full iPhone keyboard in $locale', async (settings) => {
     const user = userEvent.setup();
+    vi.spyOn(window.navigator, 'platform', 'get').mockReturnValue('iPhone');
     vi.spyOn(window.navigator, 'language', 'get').mockReturnValue(settings.locale === 'es' ? 'es-ES' : 'en-US');
     renderWithIntl(<CapitalGrowthTracker />, settings.locale);
     act(() => { window.dispatchEvent(new Event('languagechange')); });
     const principal = await screen.findByRole('textbox', { name: settings.principalLabel });
     const rate = screen.getByRole('textbox', { name: settings.rateLabel });
-    expect(principal.getAttribute('inputmode')).toBe('decimal');
-    expect(rate.getAttribute('inputmode')).toBe('decimal');
+    expect(principal.getAttribute('inputmode')).toBe('text');
+    expect(rate.getAttribute('inputmode')).toBe('text');
     expect(principal.getAttribute('type')).toBe('text');
     expect(screen.getByRole('textbox', { name: settings.weeklyLabel }).getAttribute('inputmode')).toBe('numeric');
     await user.clear(principal);
