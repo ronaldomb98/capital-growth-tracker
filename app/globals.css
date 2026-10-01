@@ -70,6 +70,7 @@ body {
 }
 
 body {
+  font-family: Arial, Helvetica, sans-serif;
   background:
     radial-gradient(circle at 100% 0, rgb(21 164 171 / 16%), transparent 40rem),
     #f7f8f9;
@@ -78,7 +79,9 @@ body {
 .cgt-page {
   width: 100%;
   min-height: 100vh;
-  margin: 0;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding: clamp(1rem, 2vw, 2rem) !important;
 }
 
 .cgt-page h1,
@@ -111,15 +114,17 @@ body {
 
 .cgt-chart {
   width: 100%;
-  height: 380px;
   min-width: 0;
-  overflow: hidden;
+  overflow-x: auto;
+}
+
+.cgt-chart-body {
+  height: 380px;
 }
 
 .cgt-chart > div {
   width: 100%;
   min-width: 0;
-  min-height: 380px;
 }
 
 .cgt-chart-grid {
@@ -131,6 +136,9 @@ body {
 }
 
 .table-scroll {
+  min-width: 0;
+  max-width: 100%;
+  overscroll-behavior-x: contain;
   max-height: 420px;
   overflow: auto;
   border: 1px solid #d4dbe0;
@@ -139,7 +147,7 @@ body {
 
 .cgt-table {
   width: 100%;
-  min-width: 620px;
+  min-width: 760px;
   border-collapse: collapse;
   font-variant-numeric: tabular-nums;
 }
@@ -176,31 +184,175 @@ body {
   text-align: right;
 }
 
+.cgt-table td {
+  white-space: nowrap;
+}
+
+.cgt-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cgt-table-toolbar h2 {
+  margin-bottom: 0.5rem;
+}
+
 .cgt-table-count {
   display: block;
-  margin-bottom: 0.75rem !important;
   color: #5a6872;
 }
 
-@media (max-width: 760px) {
-  .cgt-page {
-    padding: 1rem !important;
+
+.cgt-mode-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cgt-help {
+  color: #5a6872;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.cgt-summary {
+  border-left: 4px solid #00a4a6;
+}
+
+.cgt-summary p + p {
+  margin-top: 0.5rem;
+}
+
+.cgt-error {
+  color: #b42318;
+}
+
+.cgt-donut {
+  width: 100%;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.cgt-donut-body {
+  display: flex;
+  align-items: center;
+}
+
+.cgt-donut > div:first-child {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 380px;
+  --donut-label-font-size: clamp(0.875rem, 6.5cqi, 1.5rem);
+  --donut-sub-label-font-size: clamp(0.75rem, 4.5cqi, 1rem);
+  --donut-label-line-height: 1.25;
+  text-align: center;
+}
+
+/* Keep intrinsic chart, input and table widths inside their grid/flex cells. */
+.cgt-page > *,
+.cgt-panel * {
+  min-width: 0;
+}
+
+.cgt-number-field input {
+  width: 100%;
+  min-height: 44px;
+  font-size: 16px;
+}
+
+.cgt-number-field button,
+.cgt-date-field button[slot='trigger'] {
+  min-height: 44px;
+}
+
+.cgt-number-field button {
+  min-width: 44px;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
+.cgt-date-field button[slot='trigger'] {
+  height: auto;
+  white-space: normal;
+  text-align: start;
+}
+
+.cgt-mode-options > label {
+  min-height: 44px;
+  align-items: center;
+}
+
+.cgt-granularity [role='radio'],
+.cgt-header [role='radio'] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.cgt-calendar-popover {
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow: auto;
+}
+
+.cgt-table-hint {
+  display: none;
+  color: #5a6872;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-bottom: 0.75rem !important;
+}
+
+.table-scroll:focus-visible {
+  outline: 2px solid #007a7c;
+  outline-offset: 2px;
+}
+
+@media (max-width: 1023px) {
+  .cgt-chart-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
+  .cgt-table-hint {
+    display: block;
+  }
+}
+
+@media (max-width: 760px) {
   .cgt-header {
     align-items: flex-start !important;
     flex-direction: column !important;
   }
+}
 
-  .cgt-chart-grid {
-    grid-template-columns: 1fr !important;
+@media (max-width: 359px) {
+  .cgt-page {
+    padding-inline: 0.75rem !important;
   }
 
-  .cgt-chart {
-    height: 360px;
+  .cgt-mode-options {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
+
+@media (max-width: 599px) {
+  .cgt-donut {
+    flex-direction: column !important;
+    gap: 1rem;
   }
 
-  .cgt-chart > div {
-    min-height: 360px;
+  .cgt-donut > div:first-child {
+    flex: none;
+    max-width: 260px;
+  }
+
+  .cgt-table-toolbar > *,
+  .cgt-granularity {
+    min-width: 0;
+    max-width: 100%;
   }
 }

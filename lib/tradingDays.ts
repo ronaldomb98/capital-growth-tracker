@@ -87,12 +87,7 @@ export function nyseHolidays(year: number): Set<string> {
     holidays.add(observedFixedHoliday(year, 1, 1));
   }
 
-  // A Saturday New Year's Day is observed on the prior Friday (e.g. Jan 1,
-  // 2022 was observed on Dec 31, 2021).
-  const nextNewYearsDay = new Date(Date.UTC(year + 1, 0, 1));
-  if (nextNewYearsDay.getUTCDay() === 6) {
-    holidays.add(`${year}-12-31`);
-  }
+  // NYSE stays open on the preceding Friday when New Year's Day is Saturday.
 
   if (year >= 2022) {
     holidays.add(observedFixedHoliday(year, 6, 19)); // Juneteenth

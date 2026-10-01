@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart, Box, Grid, LineChart, Text } from '@godaddy/antares';
+import { Box, DonutChart, Grid, LineChart, Text } from '@godaddy/antares';
 import { useIntl } from 'react-intl';
 import { sampleForChart } from '../lib/chart';
 import type { ProjectionRow } from '../lib/calc';
@@ -23,54 +23,33 @@ function getPositiveDomain(values: number[]): [number, number] {
   ];
 }
 
-class CurrencyChartValue extends Number {
-  constructor(
-    amount: number,
-    private readonly formattedValue: string
-  ) {
-    super(amount);
-  }
-
-  toString(): string {
-    return this.formattedValue;
-  }
-}
-
 export function Charts({
-  rows
+  rows,
+  principal
 }: {
   rows: ProjectionRow[];
+  principal: number;
 }) {
-  const { formatMessage } = useIntl();
+  const { formatMessage, formatDate } = useIntl();
   const sampledRows = sampleForChart(rows);
   const dateAxis = formatMessage({ id: 'charts.dateAxis' });
   const amountAxis = formatMessage({ id: 'charts.amountAxis' });
-  const amountAxisWithCurrency = `${amountAxis} (USD)`;
   const accumulatedLabel = formatMessage({ id: 'charts.accumulated' });
   const summaryLabel = formatMessage({ id: 'charts.summary' });
-  const initialCapital = rows[0]?.initialCapital ?? 0;
+  const initialCapital = principal;
   const accumulatedCapital = rows.at(-1)?.accumulatedCapital ?? 0;
   const interest = accumulatedCapital - initialCapital;
   const summaryData = [{
-    category: formatMessage({ id: 'charts.initialCapital' }),
-    amount: initialCapital
+    id: 'initial-capital',
+    name: formatMessage({ id: 'charts.initialCapital' }),
+    value: initialCapital
   }, {
-    category: formatMessage({ id: 'charts.interest' }),
-    amount: interest
-  }, {
-    category: formatMessage({ id: 'charts.total' }),
-    amount: accumulatedCapital
+    id: 'profit',
+    name: formatMessage({ id: 'charts.interest' }),
+    value: interest
   }];
   const accumulatedDomain = getPositiveDomain(
     sampledRows.map((row) => row.accumulatedCapital)
-  );
-  const summaryDomain = getPositiveDomain(
-    summaryData.map((item) => item.amount)
-  );
-  const formatAmount = (value: number | string | Date) => (
-    typeof value === 'number' && value !== 0
-      ? formatCurrency(value)
-      : ''
   );
   const formatNumber = (value: number | string | Date) => (
     typeof value === 'number' && value !== 0
@@ -80,13 +59,13 @@ export function Charts({
 
   return (
     <Grid
-      columns='minmax(0, 1.1fr) minmax(0, 0.9fr)'
+      columns='repeat(2, minmax(0, 1fr))'
       gap='md'
       className='cgt-chart-grid'
     >
       <Box elevation='card' padding='md' rounding='md'>
         <Text as='h2'>{accumulatedLabel}</Text>
-        <div className='cgt-chart'>
+        <div className='cgt-chart cgt-chart-body'>
           <LineChart
             series={[{
               id: 'accumulated',
@@ -97,6 +76,8 @@ export function Charts({
               }))
             }]}
             xType='time'
+            xTickValues={sampleForChart(rows, 5).map((row) => new Date(`${row.date}T00:00:00Z`))}
+            xTickFormat={(value) => formatDate(value, { timeZone: 'UTC', month: 'short', day: 'numeric', year: '2-digit' })}
             xTitle={dateAxis}
             yTitle={amountAxis}
             yDomain={accumulatedDomain}
@@ -104,38 +85,21 @@ export function Charts({
             yNumTicks={5}
             yTickFormat={formatNumber}
             tooltipValueFormatter={(datum) => formatCurrency(datum.y as number)}
-            height={380}
             aria-label={accumulatedLabel}
           />
         </div>
       </Box>
       <Box elevation='card' padding='md' rounding='md'>
         <Text as='h2'>{summaryLabel}</Text>
-        <div className='cgt-chart'>
-          <BarChart
-            series={[{
-              id: 'capital-summary',
-              name: summaryLabel,
-              data: summaryData
-            }]}
-            orientation='horizontal'
-            /*
-             * BarChart v0.5.0 stringifies its X accessor for the tooltip but
-             * does not expose a tooltip formatter. This remains number-like
-             * for visx's linear scale while formatting its tooltip as USD.
-             */
-            xAccessor={(datum) => (
-              new CurrencyChartValue(
-                datum.amount,
-                formatCurrency(datum.amount)
-              ) as unknown as number
-            )}
-            yAccessor={(datum) => datum.category}
-            xAxisTitle={amountAxisWithCurrency}
-            xDomain={summaryDomain}
-            xNumTicks={5}
-            xTickFormat={formatAmount}
-            height={380}
+        <div className='cgt-chart-body cgt-donut-body'>
+          <DonutChart
+            className='cgt-donut'
+            data={summaryData}
+            label={formatCurrency(accumulatedCapital)}
+            subLabel={formatMessage({ id: 'charts.total' })}
+            legend='right'
+            legendLabel={summaryLabel}
+            formatValue={formatCurrency}
             aria-label={summaryLabel}
           />
         </div>

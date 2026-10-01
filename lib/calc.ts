@@ -1,5 +1,3 @@
-import { enumerateTradingDays } from './tradingDays';
-
 export interface ProjectionRow {
   period: number;
   date: string;
@@ -10,55 +8,31 @@ export interface ProjectionRow {
 
 export interface ProjectionInput {
   principal: number;
-  dailyRatePercent: number;
-  tradingDays: number;
-  startDate?: string;
+  ratePercent: number;
+  tradeDates: string[];
 }
 
-const maximumTradingDays = 4000;
-
-function todayAsDateString(): string {
-  const today = new Date();
-  const offset = today.getTimezoneOffset() * 60_000;
-
-  return new Date(today.getTime() - offset).toISOString().slice(0, 10);
-}
-
-/**
- * Calculates daily compound growth over NYSE trading days.
- *
- * The trading-day count is constrained to 4,000 so the detailed table remains
- * responsive while still supporting projections of roughly 15 years.
- */
+/** Compound once per trade, including multiple trades on the same date. */
 export function computeProjections({
   principal,
-  dailyRatePercent,
-  tradingDays,
-  startDate = todayAsDateString()
+  ratePercent,
+  tradeDates
 }: ProjectionInput): ProjectionRow[] {
+  if (!Number.isFinite(principal) || principal < 0
+    || !Number.isFinite(ratePercent) || ratePercent < 0) return [];
+
   const rows: ProjectionRow[] = [];
-  const tradingDayCount = Math.max(
-    0,
-    Math.min(Math.floor(tradingDays), maximumTradingDays)
-  );
-  const rate = dailyRatePercent / 100;
+  const rate = ratePercent / 100;
   let balance = principal;
 
-  for (const [index, date] of enumerateTradingDays(startDate, tradingDayCount).entries()) {
+  for (const [index, date] of tradeDates.entries()) {
     const initialCapital = balance;
     const periodProfit = initialCapital * rate;
     const accumulatedCapital = initialCapital + periodProfit;
-
-    rows.push({
-      period: index + 1,
-      date,
-      initialCapital,
-      periodProfit,
-      accumulatedCapital
-    });
-
+    // A huge projection must not send Infinity or NaN into the charts.
+    if (!Number.isFinite(accumulatedCapital)) return [];
+    rows.push({ period: index + 1, date, initialCapital, periodProfit, accumulatedCapital });
     balance = accumulatedCapital;
   }
-
   return rows;
 }

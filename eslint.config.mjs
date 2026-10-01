@@ -3,7 +3,7 @@ import nextVitals from 'eslint-config-next/core-web-vitals';
 const config = [
   ...nextVitals,
   {
-    ignores: ['.agents/**', '.next/**', 'out/**', 'node_modules/**']
+    ignores: ['.agents/**', '.worktrees/**', '.next/**', 'out/**', 'node_modules/**']
   }
 ];
 

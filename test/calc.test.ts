@@ -1,67 +1,33 @@
 import { describe, expect, it } from 'vitest';
 import { computeProjections } from '../lib/calc';
+import { aggregateProjections } from '../lib/aggregate';
+
+const tradeDates = ['2026-06-08', '2026-06-08', '2026-06-10'];
 
 describe('computeProjections', () => {
-  it('compounds each trading day from the prior accumulated capital', () => {
-    const rows = computeProjections({
-      principal: 1000,
-      dailyRatePercent: 10,
-      tradingDays: 3,
-      startDate: '2026-01-02'
-    });
-
-    expect(rows).toHaveLength(3);
-    expect(rows[0]).toMatchObject({
-      period: 1,
-      date: '2026-01-02',
-      initialCapital: 1000,
-      periodProfit: 100,
-      accumulatedCapital: 1100
-    });
-    expect(rows.map((row) => row.date)).toEqual([
-      '2026-01-02',
-      '2026-01-05',
-      '2026-01-06'
-    ]);
+  it('compounds every trade, including multiple trades on one date', () => {
+    const rows = computeProjections({ principal: 1000, ratePercent: 10, tradeDates });
+    expect(rows.map((row) => row.date)).toEqual(tradeDates);
     expect(rows.map((row) => row.accumulatedCapital)).toEqual([1100, 1210, 1331]);
     expect(rows[1].initialCapital).toBe(rows[0].accumulatedCapital);
+    expect(aggregateProjections(rows, 'days')).toMatchObject([
+      { label: '2026-06-08', initialCapital: 1000, periodProfit: 210, accumulatedCapital: 1210 },
+      { label: '2026-06-10', initialCapital: 1210, periodProfit: 121, accumulatedCapital: 1331 }
+    ]);
   });
 
-  it('returns no rows for zero or negative trading days', () => {
-    expect(computeProjections({
-      principal: 1000,
-      dailyRatePercent: 5,
-      tradingDays: 0
-    })).toEqual([]);
-    expect(computeProjections({
-      principal: 1000,
-      dailyRatePercent: 5,
-      tradingDays: -4
-    })).toEqual([]);
+  it('returns no rows without trades', () => {
+    expect(computeProjections({ principal: 1000, ratePercent: 5, tradeDates: [] })).toEqual([]);
   });
 
   it('preserves capital when the rate is zero', () => {
-    const rows = computeProjections({
-      principal: 1000,
-      dailyRatePercent: 0,
-      tradingDays: 3,
-      startDate: '2026-01-02'
-    });
-
-    expect(rows.every((row) => row.periodProfit === 0)).toBe(true);
-    expect(rows.every((row) => row.accumulatedCapital === 1000)).toBe(true);
+    const rows = computeProjections({ principal: 1000, ratePercent: 0, tradeDates });
+    expect(rows.every((row) => row.periodProfit === 0 && row.accumulatedCapital === 1000)).toBe(true);
   });
 
-  it('floors fractional days and caps projections at 4000 trading days', () => {
-    expect(computeProjections({
-      principal: 100,
-      dailyRatePercent: 1,
-      tradingDays: 3.9
-    })).toHaveLength(3);
-    expect(computeProjections({
-      principal: 100,
-      dailyRatePercent: 1,
-      tradingDays: 5000
-    })).toHaveLength(4000);
+  it('does not send non-finite projections to the UI', () => {
+    expect(computeProjections({ principal: NaN, ratePercent: 1, tradeDates })).toEqual([]);
+    expect(computeProjections({ principal: 1000, ratePercent: Infinity, tradeDates })).toEqual([]);
+    expect(computeProjections({ principal: 1000, ratePercent: 99, tradeDates: Array(4000).fill('2026-06-08') })).toEqual([]);
   });
 });

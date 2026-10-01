@@ -17,6 +17,11 @@ describe('NYSE trading calendar', () => {
     }
   });
 
+  it('keeps the Friday before a Saturday New Year open', () => {
+    expect(isTradingDay('2021-12-31')).toBe(true);
+    expect(isTradingDay('2027-12-31')).toBe(true);
+  });
+
   it('excludes weekends and market holidays', () => {
     expect(isTradingDay('2026-06-19')).toBe(false);
     expect(isTradingDay('2026-06-20')).toBe(false);
